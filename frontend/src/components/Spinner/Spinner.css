@@ -1,0 +1,17 @@
+.Spinner img{
+    position: absolute;
+    width: 16%;
+    top: 32%;
+    left: 41%;
+    z-index: 1000;
+
+}
+@media  (max-width: 768px) {
+    .Spinner img {
+    width: 40%;
+    top: 36%;
+    left: 30%;
+    z-index: 1000;
+    }
+    
+}

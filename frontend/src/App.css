@@ -1,0 +1,81 @@
+:root {
+  /* Define your color variables for easy use */
+  --primary-color: #2563eb;
+  --secondary-color: #0d9488;
+  --background-color: #ffffff;
+  --surface-color: #f8fafc;
+  --text-primary: #1e293b;
+  --text-secondary: #64748b;
+  --border-color: #e2e8f0;
+}
+
+body {
+  background-color: var(--background-color);
+  color: var(--text-primary);
+  font-family: 'Inter', 'Segoe UI', sans-serif; /* Use a modern font */
+}
+
+/* Style the header */
+header h1 {
+  color: var(--text-primary);
+}
+
+/* Style the date */
+.date {
+  color: var(--text-secondary);
+}
+
+/* Style the main brand name */
+.brand-name {
+  color: var(--primary-color); /* Makes "AuraCheck" stand out */
+  font-weight: bold;
+}
+
+/* Style primary buttons (Join Attendance Room) */
+.primary-button {
+  background-color: var(--primary-color);
+  color: white;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.primary-button:hover {
+  background-color: #1d4ed8; /* A slightly darker shade of the primary blue */
+}
+
+/* Style secondary buttons (Create new room) */
+.secondary-button {
+  background-color: var(--surface-color);
+  color: var(--text-primary);
+  padding: 10px 20px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.secondary-button:hover {
+  background-color: #f1f5f9; /* A slightly darker shade of the surface */
+}
+
+/* Style the Class Rooms cards */
+.classroom-card {
+  background-color: var(--surface-color);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.classroom-card h3 {
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.classroom-card p {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
