@@ -1,6 +1,6 @@
 // frontend/src/pages/Home/Home.jsx
 import React, { useState } from 'react';
-import LandingPageHeader from '../../components/LandingPageHeader/LandingPageHeader';
+import LandingPageHeader from '../../components/landingPageHeader/landingPageHeader';
 import EventPlanner from '../../components/AuraCastComponents/EventPlanner';
 import TripPlanner from '../../components/AuraCastComponents/TripPlanner';
 import EventWeatherForm from '../../components/AuraCastComponents/EventWeatherForm';
