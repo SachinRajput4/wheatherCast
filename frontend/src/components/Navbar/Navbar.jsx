@@ -20,7 +20,7 @@ const Navbar = ({ setShowLogin, toggleSidebar }) => {
       {/* Logo */}
       <Link to="/" className="flex items-center gap-3">
         <h2 className="text-2xl font-bold text-blue-600 hover:text-blue-700 transition-colors duration-300">
-          AuraCheck
+          AuraCast
         </h2>
       </Link>
 

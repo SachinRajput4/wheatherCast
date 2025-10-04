@@ -290,19 +290,22 @@ const generateDateRangeInsights = (analysis, eventType, dateRangeDays) => {
   const basic = analysis.basicWeather || {};
 
   // Smart risk calculation
-  const riskScore =
-    (extremes.veryHot || 0) * 0.25 +
-    (extremes.veryWet || 0) * 0.35 +
-    (extremes.veryWindy || 0) * 0.2 +
-    (extremes.veryUncomfortable || 0) * 0.2;
+  // 🌟 FIXED: Better risk calculation
+  const riskScore = (
+    (extremes.veryHot || 0) * 0.40 +      // Increased weight for heat
+    (extremes.veryWet || 0) * 0.30 + 
+    (extremes.veryWindy || 0) * 0.20 +
+    (extremes.veryUncomfortable || 0) * 0.10
+  );
 
-  // Dynamic risk levels
-  let riskLevel = "LOW";
-  if (riskScore > 40) riskLevel = "HIGH";
-  else if (riskScore > 20) riskLevel = "MODERATE";
-
+  // 🌟 FIXED: Better thresholds
+  let riskLevel = 'LOW';
+  if (riskScore > 30) riskLevel = 'HIGH';      // 29% heat = ~12 risk score = MODERATE
+  else if (riskScore > 15) riskLevel = 'MODERATE';
+  
   const recommendations = [];
   const criticalConcerns = [];
+  
 
   // Smart threshold-based recommendations
   if (basic.rainProbability > 60) {
@@ -355,14 +358,10 @@ const generateDateRangeInsights = (analysis, eventType, dateRangeDays) => {
     riskLevel,
     criticalConcerns,
     preparationAdvice: recommendations,
-    confidenceScore: Math.min(95, 70 + ((analysis.dataPoints || 15) / 30) * 25),
+    confidenceScore: Math.min(95, 70 + ((analysis.totalYearsAnalyzed || 15) / 30) * 25),
     riskScore: Math.round(riskScore),
-    preparationLevel:
-      riskLevel === "HIGH"
-        ? "HIGH_PREPARATION_NEEDED"
-        : riskLevel === "MODERATE"
-        ? "MODERATE_PREPARATION_NEEDED"
-        : "LOW_PREPARATION_NEEDED",
+    preparationLevel: riskLevel === 'HIGH' ? 'HIGH_PREPARATION_NEEDED' : 
+                     riskLevel === 'MODERATE' ? 'MODERATE_PREPARATION_NEEDED' : 'LOW_PREPARATION_NEEDED'
   };
 };
 

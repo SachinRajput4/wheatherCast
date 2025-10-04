@@ -9,7 +9,7 @@ const Footer = () => {
         
         {/* Left Section - Brand */}
         <div className="footer-content-left">
-          <h2 className="text-2xl font-bold text-blue-600 mb-4">AuraCheck</h2>
+          <h2 className="text-2xl font-bold text-blue-600 mb-4">AuraCast</h2>
           <p className="text-gray-600 leading-relaxed mb-6">
             Stay connected with us! For any inquiries, feel free to contact us or call us. 
             Follow us on social media for the latest updates and exclusive offers. 

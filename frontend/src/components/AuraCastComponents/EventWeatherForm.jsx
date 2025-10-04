@@ -22,10 +22,10 @@ const EventWeatherForm = ({ onAnalysis }) => {
   const suggestionsRef = useRef(null);
 
   const eventTypes = [
-    { id: 'wedding', name: 'Wedding', icon: '💒', supportsRange: false },
-    { id: 'concert', name: 'Concert', icon: '🎵', supportsRange: false },
+    { id: 'wedding', name: 'Wedding', icon: '💒', supportsRange: true },
+    { id: 'concert', name: 'Concert', icon: '🎵', supportsRange: true },
     { id: 'sports', name: 'Sports Event', icon: '⚽', supportsRange: true },
-    { id: 'picnic', name: 'Picnic', icon: '🧺', supportsRange: false },
+    { id: 'picnic', name: 'Picnic', icon: '🧺', supportsRange: true },
     { id: 'festival', name: 'Festival', icon: '🎪', supportsRange: true },
     { id: 'corporate_event', name: 'Corporate Event', icon: '🏢', supportsRange: true },
     { id: 'outdoor_party', name: 'Outdoor Party', icon: '🎊', supportsRange: true },

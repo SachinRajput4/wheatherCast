@@ -1,6 +1,9 @@
 // frontend/src/components/WeatherResults.js
 import React from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, BarChart, Bar, XAxis, YAxis, Tooltip } from 'recharts';
+import VenueSetupRecommendations from './VenueSetupRecommendations';
+import GuestComfortRecommendations from './GuestComfortRecommendations';
+import CostOptimizationRecommendations from './CostOptimizationRecommendations';
 
 // Daily Forecast Component
 const DailyForecastDisplay = ({ dailyForecast, isDateRange }) => {
@@ -598,7 +601,7 @@ const WeatherResults = ({ data }) => {
       )}
 
       {/* Recommendations */}
-      <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-6 shadow-lg">
+      {/* <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-6 shadow-lg">
         <h4 className="text-xl font-semibold text-gray-700 mb-4 flex items-center">
           <span className="mr-2">📋</span>
           Event-Specific Recommendations
@@ -622,7 +625,12 @@ const WeatherResults = ({ data }) => {
             </li>
           )}
         </ul>
-      </div>
+      </div> */}
+      
+      <VenueSetupRecommendations recommendations={recommendations} />
+<GuestComfortRecommendations recommendations={recommendations} />
+<CostOptimizationRecommendations recommendations={recommendations} />
+
       
       {/* Data Source Info */}
       <div className="bg-gradient-to-br from-gray-50 to-blue-50 rounded-2xl p-6 shadow-lg">
