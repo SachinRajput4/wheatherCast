@@ -6,46 +6,60 @@ import 'react-datepicker/dist/react-datepicker.css';
 const url = import.meta.env.VITE_BACKEND_API_URL;
 
 const TripWeatherForm = ({ onAnalysis }) => {
-  const [location, setLocation] = useState('');
-  const [selectedLocation, setSelectedLocation] = useState(null);
-  const [startDate, setStartDate] = useState(null);
-  const [endDate, setEndDate] = useState(null);
-  const [tripType, setTripType] = useState('');
+  const [origin, setOrigin] = useState('');
+  const [destination, setDestination] = useState('');
+  const [selectedOrigin, setSelectedOrigin] = useState(null);
+  const [selectedDestination, setSelectedDestination] = useState(null);
+  const [departureDate, setDepartureDate] = useState(null);
+  const [returnDate, setReturnDate] = useState(null);
+  const [tripType, setTripType] = useState('vacation');
+  const [travelMode, setTravelMode] = useState('road');
+  const [enableAI, setEnableAI] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [suggestions, setSuggestions] = useState([]);
-  const [showSuggestions, setShowSuggestions] = useState(false);
-  const [gpsLoading, setGpsLoading] = useState(false);
+  const [originSuggestions, setOriginSuggestions] = useState([]);
+  const [destinationSuggestions, setDestinationSuggestions] = useState([]);
+  const [showOriginSuggestions, setShowOriginSuggestions] = useState(false);
+  const [showDestinationSuggestions, setShowDestinationSuggestions] = useState(false);
+  const [originGpsLoading, setOriginGpsLoading] = useState(false);
+  const [destinationGpsLoading, setDestinationGpsLoading] = useState(false);
   
-  const inputRef = useRef(null);
-  const suggestionsRef = useRef(null);
+  const originInputRef = useRef(null);
+  const destinationInputRef = useRef(null);
+  const originSuggestionsRef = useRef(null);
+  const destinationSuggestionsRef = useRef(null);
 
   const tripTypes = [
-    { id: 'beach', name: 'Beach Vacation', icon: '🏖️' },
-    { id: 'hiking', name: 'Hiking Trip', icon: '🥾' },
+    { id: 'vacation', name: 'Vacation', icon: '✈️' },
+    { id: 'business', name: 'Business', icon: '💼' },
+    { id: 'hiking', name: 'Hiking', icon: '🥾' },
+    { id: 'beach', name: 'Beach', icon: '🏖️' },
     { id: 'city', name: 'City Break', icon: '🏙️' },
     { id: 'roadtrip', name: 'Road Trip', icon: '🚗' },
     { id: 'camping', name: 'Camping', icon: '⛺' },
-    { id: 'ski', name: 'Ski Trip', icon: '⛷️' },
-    { id: 'cruise', name: 'Cruise', icon: '🚢' },
     { id: 'adventure', name: 'Adventure', icon: '🧗' }
+  ];
+
+  const travelModes = [
+    { id: 'road', name: 'Road', icon: '🚗' },
+    { id: 'flight', name: 'Flight', icon: '✈️' },
+    { id: 'train', name: 'Train', icon: '🚆' },
+    { id: 'bus', name: 'Bus', icon: '🚌' }
   ];
 
   // Fetch suggestions when user types
   useEffect(() => {
-    const fetchSuggestions = async () => {
-      if (location.length < 2) {
+    const fetchSuggestions = async (query, setSuggestions) => {
+      if (query.length < 2) {
         setSuggestions([]);
-        setShowSuggestions(false);
         return;
       }
 
       try {
         const response = await fetch(
-          `${url}/api/locations/suggestions?query=${encodeURIComponent(location)}`
+          `${url}/api/locations/suggestions?query=${encodeURIComponent(query)}`
         );
         const data = await response.json();
         setSuggestions(data);
-        setShowSuggestions(data.length > 0);
       } catch (error) {
         console.error('Error fetching suggestions:', error);
         setSuggestions([]);
@@ -53,22 +67,27 @@ const TripWeatherForm = ({ onAnalysis }) => {
     };
 
     const delayDebounce = setTimeout(() => {
-      fetchSuggestions();
+      if (origin.length >= 2) {
+        fetchSuggestions(origin, setOriginSuggestions);
+      }
+      if (destination.length >= 2) {
+        fetchSuggestions(destination, setDestinationSuggestions);
+      }
     }, 300);
 
     return () => clearTimeout(delayDebounce);
-  }, [location]);
+  }, [origin, destination]);
 
   // Close suggestions when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (
-        suggestionsRef.current && 
-        !suggestionsRef.current.contains(event.target) &&
-        inputRef.current && 
-        !inputRef.current.contains(event.target)
-      ) {
-        setShowSuggestions(false);
+      if (originSuggestionsRef.current && !originSuggestionsRef.current.contains(event.target) &&
+          originInputRef.current && !originInputRef.current.contains(event.target)) {
+        setShowOriginSuggestions(false);
+      }
+      if (destinationSuggestionsRef.current && !destinationSuggestionsRef.current.contains(event.target) &&
+          destinationInputRef.current && !destinationInputRef.current.contains(event.target)) {
+        setShowDestinationSuggestions(false);
       }
     };
 
@@ -77,7 +96,7 @@ const TripWeatherForm = ({ onAnalysis }) => {
   }, []);
 
   // Get current location using GPS
-  const getCurrentLocation = () => {
+  const getCurrentLocation = (setLocation, setSelectedLocation, setGpsLoading) => {
     setGpsLoading(true);
     
     if (!navigator.geolocation) {
@@ -104,7 +123,6 @@ const TripWeatherForm = ({ onAnalysis }) => {
             lat: latitude,
             lon: longitude
           });
-          setShowSuggestions(false);
         } catch (error) {
           const locationName = `Current Location (${latitude.toFixed(4)}, ${longitude.toFixed(4)})`;
           setLocation(locationName);
@@ -147,7 +165,7 @@ const TripWeatherForm = ({ onAnalysis }) => {
   };
 
   // Handle suggestion selection
-  const handleSuggestionSelect = (suggestion) => {
+  const handleSuggestionSelect = (suggestion, setLocation, setSelectedLocation, setShowSuggestions) => {
     setLocation(suggestion.display_name);
     setSelectedLocation(suggestion);
     setShowSuggestions(false);
@@ -157,17 +175,18 @@ const TripWeatherForm = ({ onAnalysis }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!selectedLocation || !startDate || !endDate) {
-      alert('Please select a location and travel dates');
+    if (!selectedOrigin || !selectedDestination || !departureDate) {
+      alert('Please select origin, destination, and departure date');
       return;
     }
     
-    if (endDate < startDate) {
+    if (returnDate && returnDate < departureDate) {
       alert('Return date cannot be before departure date');
       return;
     }
     
-    const tripDuration = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
+    const tripDuration = returnDate ? 
+      Math.ceil((returnDate - departureDate) / (1000 * 60 * 60 * 24)) + 1 : 1;
     
     if (tripDuration > 30) {
       alert('Trip duration cannot exceed 30 days');
@@ -177,17 +196,22 @@ const TripWeatherForm = ({ onAnalysis }) => {
     setLoading(true);
     try {
       const requestBody = {
-        location: selectedLocation.display_name,
-        coordinates: {
-          lat: selectedLocation.lat,
-          lon: selectedLocation.lon
-        },
-        date: startDate.toISOString(),
-        endDate: endDate.toISOString(),
-        tripType: tripType
+        origin: selectedOrigin.display_name,
+        destination: selectedDestination.display_name,
+        departureDate: departureDate.toISOString().split('T')[0],
+        tripType: tripType,
+        travelMode: travelMode,
+        enableAI: enableAI
       };
       
-      const response = await fetch(`${url}/api/weather/analyze`, {
+      // Add returnDate only if provided (make it required as per your API)
+      if (returnDate) {
+        requestBody.returnDate = returnDate.toISOString().split('T')[0];
+      }
+      
+      console.log('Sending trip analysis request:', requestBody);
+      
+      const response = await fetch(`${url}/api/weather/trip/analyze`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(requestBody)
@@ -196,22 +220,22 @@ const TripWeatherForm = ({ onAnalysis }) => {
       const data = await response.json();
       
       if (!response.ok) {
-        throw new Error(data.error || 'Analysis failed');
+        throw new Error(data.error || 'Trip analysis failed');
       }
       
       onAnalysis(data);
     } catch (error) {
       console.error('Error:', error);
-      alert(`Error analyzing weather: ${error.message}`);
+      alert(`Error analyzing trip: ${error.message}`);
     }
     setLoading(false);
   };
 
   // Calculate trip duration
   const getTripDuration = () => {
-    if (!startDate || !endDate) return '';
+    if (!departureDate || !returnDate) return '';
     
-    const days = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
+    const days = Math.ceil((returnDate - departureDate) / (1000 * 60 * 60 * 24)) + 1;
     return `${days} day${days > 1 ? 's' : ''}`;
   };
 
@@ -247,9 +271,30 @@ const TripWeatherForm = ({ onAnalysis }) => {
               </button>
             ))}
           </div>
-          {!tripType && (
-            <p className="text-sm text-orange-600">Please select your trip type</p>
-          )}
+        </div>
+
+        {/* Travel Mode Selector */}
+        <div className="space-y-3">
+          <label className="block text-sm font-semibold text-gray-700">
+            Travel Mode:
+          </label>
+          <div className="flex flex-wrap gap-2 mb-4">
+            {travelModes.map(mode => (
+              <button
+                key={mode.id}
+                type="button"
+                onClick={() => setTravelMode(mode.id)}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 border flex items-center gap-2 ${
+                  travelMode === mode.id
+                    ? 'bg-blue-500 text-white border-blue-500 shadow-md scale-105'
+                    : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50 hover:border-blue-300'
+                }`}
+              >
+                <span>{mode.icon}</span>
+                <span>{mode.name}</span>
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Travel Dates */}
@@ -264,11 +309,11 @@ const TripWeatherForm = ({ onAnalysis }) => {
                 Departure Date *
               </label>
               <DatePicker
-                selected={startDate}
-                onChange={setStartDate}
+                selected={departureDate}
+                onChange={setDepartureDate}
                 minDate={new Date()}
-                dateFormat="MMMM d, yyyy"
-                placeholderText="Select departure date"
+                dateFormat="yyyy-MM-dd"
+                placeholderText="YYYY-MM-DD"
                 required
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition duration-200"
               />
@@ -279,47 +324,47 @@ const TripWeatherForm = ({ onAnalysis }) => {
                 Return Date *
               </label>
               <DatePicker
-                selected={endDate}
-                onChange={setEndDate}
-                minDate={startDate || new Date()}
-                dateFormat="MMMM d, yyyy"
-                placeholderText="Select return date"
+                selected={returnDate}
+                onChange={setReturnDate}
+                minDate={departureDate || new Date()}
+                dateFormat="yyyy-MM-dd"
+                placeholderText="YYYY-MM-DD"
                 required
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition duration-200"
               />
             </div>
           </div>
 
-          {startDate && endDate && (
+          {departureDate && returnDate && (
             <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
               <div className="flex items-center text-sm text-green-800">
                 <span className="mr-2">⏱️</span>
                 <strong>Trip Duration:</strong> 
                 <span className="ml-1">{getTripDuration()}</span>
                 <span className="mx-2">•</span>
-                <span>{startDate.toLocaleDateString()} to {endDate.toLocaleDateString()}</span>
+                <span>{departureDate.toISOString().split('T')[0]} to {returnDate.toISOString().split('T')[0]}</span>
               </div>
             </div>
           )}
         </div>
 
-        {/* Location Input */}
+        {/* Origin Location Input */}
         <div className="space-y-2">
-          <label htmlFor="location-input" className="block text-sm font-semibold text-gray-700">
-            Destination:
+          <label htmlFor="origin-input" className="block text-sm font-semibold text-gray-700">
+            Origin: *
           </label>
           <div className="relative">
             <input
-              id="location-input"
-              ref={inputRef}
+              id="origin-input"
+              ref={originInputRef}
               type="text"
-              value={location}
+              value={origin}
               onChange={(e) => {
-                setLocation(e.target.value);
-                setSelectedLocation(null);
+                setOrigin(e.target.value);
+                setSelectedOrigin(null);
               }}
-              onFocus={() => location.length >= 2 && setShowSuggestions(true)}
-              placeholder="Search for your destination"
+              onFocus={() => origin.length >= 2 && setShowOriginSuggestions(true)}
+              placeholder="Enter origin city or address"
               required
               className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition duration-200"
             />
@@ -327,15 +372,15 @@ const TripWeatherForm = ({ onAnalysis }) => {
             <button 
               type="button" 
               className={`absolute right-3 top-1/2 transform -translate-y-1/2 p-2 rounded-lg transition duration-200 ${
-                gpsLoading 
+                originGpsLoading 
                   ? 'bg-gray-100 text-gray-400' 
                   : 'bg-green-100 text-green-600 hover:bg-green-200'
               }`}
-              onClick={getCurrentLocation}
-              disabled={gpsLoading}
+              onClick={() => getCurrentLocation(setOrigin, setSelectedOrigin, setOriginGpsLoading)}
+              disabled={originGpsLoading}
               title="Use current location"
             >
-              {gpsLoading ? (
+              {originGpsLoading ? (
                 <span className="animate-spin">⏳</span>
               ) : (
                 '📍'
@@ -343,14 +388,14 @@ const TripWeatherForm = ({ onAnalysis }) => {
             </button>
           </div>
 
-          {/* Autocomplete Suggestions */}
-          {showSuggestions && suggestions.length > 0 && (
-            <div ref={suggestionsRef} className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
-              {suggestions.map((suggestion, index) => (
+          {/* Origin Autocomplete Suggestions */}
+          {showOriginSuggestions && originSuggestions.length > 0 && (
+            <div ref={originSuggestionsRef} className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+              {originSuggestions.map((suggestion, index) => (
                 <div
                   key={index}
                   className="p-3 border-b border-gray-100 last:border-b-0 hover:bg-green-50 cursor-pointer transition duration-150"
-                  onClick={() => handleSuggestionSelect(suggestion)}
+                  onClick={() => handleSuggestionSelect(suggestion, setOrigin, setSelectedOrigin, setShowOriginSuggestions)}
                 >
                   <div className="font-medium text-gray-800">
                     {suggestion.display_name}
@@ -362,27 +407,113 @@ const TripWeatherForm = ({ onAnalysis }) => {
               ))}
             </div>
           )}
-
-          <p className="text-xs text-gray-500">
-            Start typing to see suggestions, or click the location pin for GPS
-          </p>
         </div>
 
-        {/* Selected Location Display */}
-        {selectedLocation && (
-          <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
-            <div className="flex items-center text-sm text-green-800">
-              <span className="mr-2">✅</span>
-              <strong>Selected:</strong> 
-              <span className="ml-1">{selectedLocation.display_name}</span>
+        {/* Selected Origin Display */}
+        {selectedOrigin && (
+          <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+            <div className="flex items-center text-sm text-blue-800">
+              <span className="mr-2">📍</span>
+              <strong>Origin Selected:</strong> 
+              <span className="ml-1">{selectedOrigin.display_name}</span>
             </div>
           </div>
         )}
 
+        {/* Destination Location Input */}
+        <div className="space-y-2">
+          <label htmlFor="destination-input" className="block text-sm font-semibold text-gray-700">
+            Destination: *
+          </label>
+          <div className="relative">
+            <input
+              id="destination-input"
+              ref={destinationInputRef}
+              type="text"
+              value={destination}
+              onChange={(e) => {
+                setDestination(e.target.value);
+                setSelectedDestination(null);
+              }}
+              onFocus={() => destination.length >= 2 && setShowDestinationSuggestions(true)}
+              placeholder="Enter destination city or address"
+              required
+              className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition duration-200"
+            />
+            
+            <button 
+              type="button" 
+              className={`absolute right-3 top-1/2 transform -translate-y-1/2 p-2 rounded-lg transition duration-200 ${
+                destinationGpsLoading 
+                  ? 'bg-gray-100 text-gray-400' 
+                  : 'bg-green-100 text-green-600 hover:bg-green-200'
+              }`}
+              onClick={() => getCurrentLocation(setDestination, setSelectedDestination, setDestinationGpsLoading)}
+              disabled={destinationGpsLoading}
+              title="Use current location"
+            >
+              {destinationGpsLoading ? (
+                <span className="animate-spin">⏳</span>
+              ) : (
+                '📍'
+              )}
+            </button>
+          </div>
+
+          {/* Destination Autocomplete Suggestions */}
+          {showDestinationSuggestions && destinationSuggestions.length > 0 && (
+            <div ref={destinationSuggestionsRef} className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+              {destinationSuggestions.map((suggestion, index) => (
+                <div
+                  key={index}
+                  className="p-3 border-b border-gray-100 last:border-b-0 hover:bg-green-50 cursor-pointer transition duration-150"
+                  onClick={() => handleSuggestionSelect(suggestion, setDestination, setSelectedDestination, setShowDestinationSuggestions)}
+                >
+                  <div className="font-medium text-gray-800">
+                    {suggestion.display_name}
+                  </div>
+                  <div className="text-sm text-gray-500 mt-1">
+                    {suggestion.type} • {suggestion.address?.country || ''}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Selected Destination Display */}
+        {selectedDestination && (
+          <div className="p-3 bg-purple-50 border border-purple-200 rounded-lg">
+            <div className="flex items-center text-sm text-purple-800">
+              <span className="mr-2">🎯</span>
+              <strong>Destination Selected:</strong> 
+              <span className="ml-1">{selectedDestination.display_name}</span>
+            </div>
+          </div>
+        )}
+
+        {/* AI Enhancement Toggle */}
+        <div className="flex items-center space-x-3 p-4 bg-gradient-to-r from-green-50 to-teal-50 rounded-lg border border-green-200">
+          <input
+            type="checkbox"
+            id="enableAI"
+            checked={enableAI}
+            onChange={(e) => setEnableAI(e.target.checked)}
+            className="w-5 h-5 text-green-600 bg-white border-green-300 rounded focus:ring-green-500 focus:ring-2"
+          />
+          <label htmlFor="enableAI" className="flex items-center space-x-2 text-sm font-medium text-green-800 cursor-pointer">
+            <span className="text-lg">🤖</span>
+            <div>
+              <div className="font-semibold">Enable AI Enhancement</div>
+              <div className="text-green-600 text-xs">Get smarter recommendations and travel insights</div>
+            </div>
+          </label>
+        </div>
+
         {/* Submit Button */}
         <button 
           type="submit" 
-          disabled={loading || !selectedLocation || !startDate || !endDate || !tripType}
+          disabled={loading || !selectedOrigin || !selectedDestination || !departureDate || !returnDate || !tripType}
           className="w-full bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700 disabled:from-gray-400 disabled:to-gray-500 text-white font-semibold py-3 px-6 rounded-lg shadow-lg transition-all duration-200 transform hover:scale-105 disabled:scale-100 disabled:cursor-not-allowed"
         >
           {loading ? (
@@ -394,7 +525,7 @@ const TripWeatherForm = ({ onAnalysis }) => {
               Analyzing Trip Weather...
             </span>
           ) : (
-            'Check Trip Weather Conditions'
+            `Analyze Trip Weather ${enableAI ? 'with AI 🤖' : ''}`
           )}
         </button>
       </form>
